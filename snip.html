@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snip - បណ្តាញសកម្មភាពបរិស្ថាន</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0d7377;
+            --primary-dark: #14919b;
+            --secondary: #32e0c4;
+            --accent: #ff6b6b;
+            --light: #f8f9fa;
+            --dark: #212121;
+            --gray: #6c757d;
+            --border: #dee2e6;
+            --leaf: #4caf50;
+        }
+
+        body {
+            font-family: 'Khmer OS', 'Khmer OS System', 'Noto Sans Khmer', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
+            min-height: 100vh;
+            color: var(--dark);
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        /* UPDATED: Emblem CSS adapted for your logo image */
+        .emblem {
+            width: 65px;
+            height: 65px;
+            background: white;
+            border-radius: 50%;
+            object-fit: contain;
+            padding: 4px; /* Protects the logo corners from being cut by the circle */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .header-text h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+            letter-spacing: 1px;
+        }
+
+        .header-text p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .language-toggle {
+            margin-left: auto;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.5);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .language-toggle:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(rgba(13, 115, 119, 0.9), rgba(20, 145, 155, 0.9)), 
+                        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%230d7377" width="100" height="100"/><path fill="%2314919b" d="M0 50 Q25 30 50 50 T100 50 V100 H0 Z"/></svg>');
+            background-size: cover;
+            color: white;
+            padding: 4rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '🌿';
+            position: absolute;
+            font-size: 20rem;
+            opacity: 0.05;
+            top: -5rem;
+            right: -5rem;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .hero .slogan {
+            font-size: 1.5rem;
+            color: var(--secondary);
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            font-style: italic;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            opacity: 0.95;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: var(--secondary);
+            color: var(--dark);
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(50, 224, 196, 0.4);
+            border: none;
+            cursor: pointer;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(50, 224, 196, 0.6);
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            background: white;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-top: -2rem;
+            position: relative;
+            z-index: 10;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+            border-radius: 10px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            text-align: center;
+        }
+
+        .stat-item h3 {
+            color: var(--primary);
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-item p {
+            color: var(--gray);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 800px;
+            margin: 3rem auto;
+            padding: 0 2rem;
+        }
+        
+        /* Map UI */
+        #map { height: 350px; margin-top: 15px; border-radius: 12px; border: 2px solid var(--primary); z-index: 1; }
+        .gps-btn { margin-top: 10px; width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .gps-btn:disabled { opacity: 0.6; cursor: wait; }
+
+        /* Form Section */
+        .form-section {
+            background: white;
+            border-radius: 15px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 3rem;
+            border-top: 5px solid var(--primary);
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .form-header h3 {
+            color: var(--primary);
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .form-header p {
+            color: var(--gray);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .required {
+            color: var(--accent);
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 0.875rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(13, 115, 119, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Media Upload Section */
+        .media-upload-container {
+            border: 3px dashed var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s;
+            background: var(--light);
+            cursor: pointer;
+        }
+
+        .media-upload-container:hover {
+            border-color: var(--primary);
+            background: rgba(13, 115, 119, 0.05);
+        }
+
+        .media-upload-container.has-media {
+            border-color: var(--primary);
+            background: rgba(13, 115, 119, 0.1);
+            border-style: solid;
+        }
+
+        .media-upload-container input {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--gray);
+        }
+
+        .media-upload-container.has-media .upload-icon {
+            color: var(--primary);
+        }
+
+        .upload-text {
+            color: var(--gray);
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-hint {
+            font-size: 0.85rem;
+            color: var(--gray);
+            opacity: 0.8;
+        }
+
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .media-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            aspect-ratio: 1;
+        }
+
+        .media-item img, .media-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .media-item .remove-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .media-item:hover .remove-btn {
+            opacity: 1;
+        }
+
+        .media-item .file-type {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+
+        .add-more-btn {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .add-more-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .file-counter {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        /* Submit Button */
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            padding: 1.25rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(13, 115, 119, 0.4);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Status Messages */
+        .status-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            display: none;
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+        }
+
+        .status-success { background-color: #2ecc71; }
+        .status-error { background-color: #e74c3c; }
+
+        @keyframes slideIn {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Info Section */
+        .info-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .info-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            text-align: center;
+            transition: transform 0.3s;
+            border-top: 3px solid var(--secondary);
+        }
+
+        .info-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+
+        .info-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-card h4 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .info-card p {
+            color: var(--gray);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* Environmental Impact Section */
+        .impact-section {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            padding: 3rem 2rem;
+            border-radius: 15px;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .impact-section h3 {
+            color: var(--primary);
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .impact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .impact-item {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .impact-item .number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--leaf);
+            display: block;
+        }
+
+        .impact-item .label {
+            color: var(--gray);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--dark);
+            color: white;
+            padding: 3rem 2rem 2rem;
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: var(--secondary);
+        }
+
+        .footer p {
+            opacity: 0.8;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .copyright {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.85rem;
+            opacity: 0.6;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-text h1 { font-size: 1.2rem; }
+            .hero h2 { font-size: 1.8rem; }
+            .hero .slogan { font-size: 1.2rem; }
+            .form-section { padding: 1.5rem; }
+            .stats-bar { grid-template-columns: 1fr; gap: 1.5rem; }
+            .media-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+        }
+        
+        .label-bilingual { display: flex; flex-direction: column; gap: 0.2rem; }
+        .label-khmer { font-size: 1rem; }
+        .label-english { font-size: 0.85rem; color: var(--gray); font-weight: 400; }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <!-- UPDATED: Emblem changed to an img tag for your logo -->
+            <div class="logo-section">
+                <img src="Snip.png" alt="Snip Logo" class="emblem">
+                <div class="header-text">
+                    <h1>Snip</h1>
+                    <p>បណ្តាញសកម្មភាពបរិស្ថាន</p>
+                </div>
+            </div>
+            <button class="language-toggle" onclick="toggleLanguage()">English / ភាសាខ្មែរ</button>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h2 id="heroTitle">ថត រាយការណ៍ ស្អាត</h2>
+            <p class="slogan" id="heroSlogan">"អនុវត្តពេលនេះសម្រាប់បច្ចប្បន្ននិងថ្ងៃស្អែក"</p>
+            <p id="heroDesc">ចូលរួមចលនាដឹកនាំដោយសហគមន៍របស់យើងដើម្បីការពារបរិស្ថាន។ រាយការណ៍ពីការបំពុល ការចោលសំរាមខុសច្បាប់ និងគ្រោះថ្នាក់បរិស្ថានភ្លាមៗ។</p>
+            <a href="#reportForm" class="cta-button" id="ctaButton">ធ្វើការរាយការណ៍</a>
+        </div>
+    </section>
+
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+        <div class="stat-item">
+            <h3 id="statReports">0</h3>
+            <p id="statReportsLabel">របាយការណ៍ដែលបានដាក់ស្នើ<br><span style="font-size: 0.8rem; color: #999;">Reports Submitted</span></p>
+        </div>
+        <div class="stat-item">
+            <h3 id="statResolved">0</h3>
+            <p id="statResolvedLabel">ករណីដែលបានដោះស្រាយ<br><span style="font-size: 0.8rem; color: #999;">Cases Resolved</span></p>
+        </div>
+        <div class="stat-item">
+            <h3 id="statCities">25</h3>
+            <p id="statCitiesLabel">តំបន់សកម្ម<br><span style="font-size: 0.8rem; color: #999;">Active Regions</span></p>
+        </div>
+        <div class="stat-item">
+            <h3>24/7</h3>
+            <p id="statActiveLabel">ធ្វើការរាយការណ៍សកម្ម<br><span style="font-size: 0.8rem; color: #999;">Reporting Active</span></p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+
+        <!-- Info Cards -->
+        <div class="info-section">
+            <div class="info-card">
+                <div class="info-icon">📸</div>
+                <h4 id="info1Title">ថតភស្តុតាង</h4>
+                <p id="info1Desc">ថតរូបភាពច្បាស់នៃបញ្ហាបរិស្ថាន - សំរាម ការបំពុល ឬប្រព័ន្ធអេកូឡូស៊ីខូច។</p>
+            </div>
+            <div class="info-card">
+                <div class="info-icon">📍</div>
+                <h4 id="info2Title">សម្គាល់ទីតាំង</h4>
+                <p id="info2Desc">កំណត់ទីតាំងជាក់លាក់នៃបញ្ហាសម្រាប់ក្រុមឆ្លើយតបលឿន។</p>
+            </div>
+            <div class="info-card">
+                <div class="info-icon">🚀</div>
+                <h4 id="info3Title">រាយការណ៍ភ្លាមៗ</h4>
+                <p id="info3Desc">របាយការណ៍របស់អ្នកជូនដំណឹងដល់អាជ្ញាធរបរិស្ថាននិងក្រុមសម្អាតភ្លាមៗ។</p>
+            </div>
+        </div>
+
+        <!-- Environmental Impact -->
+        <div class="impact-section">
+            <h3 id="impactTitle">ឥទ្ធិពលរបស់អ្នកមានតម្លៃ</h3>
+            <div class="impact-grid">
+                <div class="impact-item">
+                    <span class="number" id="impactTrees">1,240</span>
+                    <div class="label" id="impactTreesLabel">ដើមឈើដែលបានជួយសង្គ្រោះ</div>
+                </div>
+                <div class="impact-item">
+                    <span class="number" id="impactWaste">5.2T</span>
+                    <div class="label" id="impactWasteLabel">សំរាមដែលបានប្រមូល</div>
+                </div>
+                <div class="impact-item">
+                    <span class="number" id="impactWater">12K</span>
+                    <div class="label" id="impactWaterLabel">លីត្រទឹកដែលបានការពារ</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report Form -->
+        <section class="form-section" id="reportForm">
+            <div class="form-header">
+                <h3>📝 <span id="formTitle">ដាក់ស្នើរបាយការណ៍បរិស្ថាន</span></h3>
+                <p id="formSubtitle">វាលដែលមានសញ្ញា <span class="required">*</span> គឺចាំបាច់</p>
+            </div>
+
+            <div id="statusMessage" class="status-message">
+                <span id="statusIcon"></span>
+                <span id="statusText"></span> 
+            </div>
+
+            <form id="trashReportForm">
+                <!-- Evidence Upload -->
+                <div class="form-group">
+                    <label class="label-bilingual">
+                        <span class="label-khmer">ភស្តុតាង <span class="required">*</span></span>
+                        <span class="label-english">Evidence / Media Files</span>
+                    </label>
+                    <div class="media-upload-container" id="mediaUploadContainer" onclick="document.getElementById('mediaInput').click()">
+                        <input type="file" id="mediaInput" accept="image/*,video/*" multiple style="display: none;">
+                        <div class="upload-icon" id="uploadIcon">📷🎥</div>
+                        <div class="upload-text" id="uploadText">ចុចដើម្បីបន្ថែមរូបភាពឬវីដេអូ</div>
+                        <div class="upload-hint" id="uploadHint">អតិបរមា 10 ឯកសារ (រូបភាព JPG, PNG ឬវីដេអូ MP4, MOV) - ទំហំអតិបរមា 20MB ក្នុងមួយឯកសារ</div>
+                        <div class="file-counter" id="fileCounter" style="display: none;"></div>
+                    </div>
+                    
+                    <div class="media-grid" id="mediaGrid"></div>
+                    
+                    <button type="button" class="add-more-btn" id="addMoreBtn" style="display: none;" onclick="document.getElementById('mediaInput').click()">
+                        + បន្ថែមភស្តុតាងផ្សេងទៀត
+                    </button>
+                </div>
+
+                <!-- Location -->
+                <div class="form-group">
+                    <label class="label-bilingual">
+                        <span id="labelLocation">ទីតាំង <span class="required">*</span></span>
+                        <span class="label-english">Location (Manual adjustment enabled)</span>
+                    </label>
+                    <input type="text" id="location" placeholder="Link location will appear here..." required readonly style="background: #f0f0f0;">
+                    <button type="button" id="gpsBtn" class="gps-btn" onclick="getLocation()">
+                        📍 <span id="gpsBtnText">រកទីតាំងតាម GPS / Get GPS Location</span>
+                    </button>
+                    <div id="map"></div>
+                    <p class="label-english" style="margin-top: 8px; font-style: italic;">
+                        💡 <b>Tip:</b> <span id="tipText">ចុចលើផែនទី ឬអូសចំណុចក្រហមដើម្បីកែតម្រូវទីតាំង</span><br>
+                        (Tap map or drag the pin to point exactly at the issue)
+                    </p>
+                </div>
+
+                <!-- Issue Type -->
+                <div class="form-group">
+                    <label for="issueType" class="label-bilingual">
+                        <span class="label-khmer">ប្រភេទបញ្ហា <span class="required">*</span></span>
+                        <span class="label-english">Issue Type</span>
+                    </label>
+                    <input type="text" id="issueType" placeholder="ឧទាហរណ៍ ការចោលសំរាមខុសច្បាប់ ការបំពុលខ្យល់ ការបំពុលទឹក" required>
+                </div>
+
+                <!-- Description -->
+                <div class="form-group">
+                    <label for="description" class="label-bilingual">
+                        <span class="label-khmer">ការពណ៌នា</span>
+                        <span class="label-english">Description</span>
+                    </label>
+                    <textarea id="description" placeholder="ពណ៌នាបញ្ហាបរិស្ថាន គ្រោះថ្នាក់ដែលអាចកើតមាន និងកម្រិតបន្ទាន់..."></textarea>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <span>ដាក់ស្នើរបាយការណ៍</span>
+                </button>
+            </form>
+        </section>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="#">អំពី Snip</a>
+                <a href="#">គោលការណ៍បរិស្ថាន</a>
+                <a href="#">អង្គការដៃគូ</a>
+                <a href="#">ទំនាក់ទំនង</a>
+            </div>
+            <p>បណ្តាញសកម្មភាពបរិស្ថាន Snip<br>
+            ភ្ជាប់សហគមន៍សម្រាប់ភពផែនដីស្អាត</p>
+            <p>អ៊ីមែល៖ govcheukeat@gmail.com | ទូរស័ព្ទ៖ (855) 692 224 26</p>
+            <div class="copyright">
+                © 2024 Snip. រក្សាសិទ្ធិគ្រប់យ៉ាង | ធ្វើជាមួយ 🌿 សម្រាប់មាតាធម្មជាតិ
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxvQtNLTXpTDJAYswl8SYdzHkzrtl8a8lkEG-4XkbETpMou4wwcbHtphMWo2gd4YmmOnw/exec';
+        
+        let currentLang = 'km';
+        
+        const translations = {
+            km: {
+                heroTitle: 'ថត រាយការណ៍ ស្អាត',
+                heroSlogan: '"អនុវត្តពេលនេះសម្រាប់បច្ចប្បន្ននិងថ្ងៃស្អែក"',
+                heroDesc: 'ចូលរួមចលនាដឹកនាំដោយសហគមន៍របស់យើងដើម្បីការពារបរិស្ថាន។ រាយការណ៍ពីការបំពុល ការចោលសំរាមខុសច្បាប់ និងគ្រោះថ្នាក់បរិស្ថានភ្លាមៗ។',
+                ctaButton: 'ធ្វើការរាយការណ៍',
+                info1Title: 'ថតភស្តុតាង',
+                info1Desc: 'ថតរូបភាពច្បាស់នៃបញ្ហាបរិស្ថាន - សំរាម ការបំពុល ឬប្រព័ន្ធអេកូឡូស៊ីខូច។',
+                info2Title: 'សម្គាល់ទីតាំង',
+                info2Desc: 'កំណត់ទីតាំងជាក់លាក់នៃបញ្ហាសម្រាប់ក្រុមឆ្លើយតបលឿន។',
+                info3Title: 'រាយការណ៍ភ្លាមៗ',
+                info3Desc: 'របាយការណ៍របស់អ្នកជូនដំណឹងដល់អាជ្ញាធរបរិស្ថាននិងក្រុមសម្អាតភ្លាមៗ។',
+                impactTitle: 'ឥទ្ធិពលរបស់អ្នកមានតម្លៃ',
+                impactTreesLabel: 'ដើមឈើដែលបានជួយសង្គ្រោះ',
+                impactWasteLabel: 'សំរាមដែលបានប្រមូល',
+                impactWaterLabel: 'លីត្រទឹកដែលបានការពារ',
+                formTitle: 'ដាក់ស្នើរបាយការណ៍បរិស្ថាន',
+                formSubtitle: 'វាលដែលមានសញ្ញា * គឺចាំបាច់',
+                locationPlaceholder: 'ឧទាហរណ៍ សួនច្បារមាត់ទន្លេ ជិតស្ពានចាស់',
+                issueTypePlaceholder: 'ឧទាហរណ៍ ការចោលសំរាមខុសច្បាប់ ការបំពុលខ្យល់ ការបំពុលទឹក',
+                descriptionPlaceholder: 'ពណ៌នាបញ្ហាបរិស្ថាន គ្រោះថ្នាក់ដែលអាចកើតមាន និងកម្រិតបន្ទាន់...',
+                uploadText: 'ចុចដើម្បីបន្ថែមរូបភាពឬវីដេអូ',
+                uploadHint: 'អតិបរមា 10 ឯកសារ (រូបភាព JPG, PNG ឬវីដេអូ MP4, MOV) - ទំហំអតិបរមា 20MB ក្នុងមួយឯកសារ',
+                addMoreBtn: '+ បន្ថែមភស្តុតាងផ្សេងទៀត',
+                submitBtn: 'ដាក់ស្នើរបាយការណ៍',
+                successMessage: '✅ របាយការណ៍ត្រូវបានដាក់ស្នើដោយជោគជ័យ! សូមអរគុណចំពោះការការពារបរិស្ថានរបស់យើង។',
+                errorMessage: '❌ កំហុសក្នុងការដាក់ស្នើរបាយការណ៍។ សូមព្យាយាមម្តងទៀត។',
+                fileCounter: 'ឯកសារដែលបានជ្រើសរើស៖ {count}/10',
+                statReportsLabel: 'របាយការណ៍ដែលបានដាក់ស្នើ<br><span style="font-size: 0.8rem; color: #999;">Reports Submitted</span>',
+                statResolvedLabel: 'ករណីដែលបានដោះស្រាយ<br><span style="font-size: 0.8rem; color: #999;">Cases Resolved</span>',
+                statCitiesLabel: 'តំបន់សកម្ម<br><span style="font-size: 0.8rem; color: #999;">Active Regions</span>',
+                statActiveLabel: 'ធ្វើការរាយការណ៍សកម្ម<br><span style="font-size: 0.8rem; color: #999;">Reporting Active</span>',
+            },
+            en: {
+                heroTitle: 'Snip Report Clean',
+                heroSlogan: '"Do it now for today and tomorrow."',
+                heroDesc: 'Join our community-driven movement to protect the environment. Report pollution, illegal dumping, and environmental hazards instantly.',
+                ctaButton: 'Make a Report',
+                info1Title: 'Snip Evidence',
+                info1Desc: 'Take clear photos/videos of environmental issues - trash, pollution, or damaged ecosystems.',
+                info2Title: 'Mark Location',
+                info2Desc: 'Pinpoint exactly where the issue is located for rapid response teams.',
+                info3Title: 'Instant Alert',
+                info3Desc: 'Your report immediately notifies local environmental authorities and cleanup crews.',
+                impactTitle: 'Your Impact Matters',
+                impactTreesLabel: 'Trees Saved',
+                impactWasteLabel: 'Waste Collected',
+                impactWaterLabel: 'Liters Water Protected',
+                formTitle: 'Submit Environmental Report',
+                formSubtitle: 'All fields marked with * are required',
+                locationPlaceholder: 'e.g., Riverside Park, near the old bridge',
+                issueTypePlaceholder: 'e.g., Illegal dumping, Air pollution, Water contamination',
+                descriptionPlaceholder: 'Describe the environmental issue, potential hazards, and urgency level...',
+                uploadText: 'Click to add photos or videos',
+                uploadHint: 'Max 10 files (JPG, PNG images or MP4, MOV videos) - Max 20MB per file',
+                addMoreBtn: '+ Add More Evidence',
+                submitBtn: 'Submit Report',
+                successMessage: '✅ Report submitted successfully! Thank you for protecting our environment.',
+                errorMessage: '❌ Error submitting report. Please try again.',
+                fileCounter: 'Selected files: {count}/10',
+                statReportsLabel: 'Reports Submitted<br><span style="font-size: 0.8rem; color: #999;">របាយការណ៍ដែលបានដាក់ស្នើ</span>',
+                statResolvedLabel: 'Cases Resolved<br><span style="font-size: 0.8rem; color: #999;">ករណីដែលបានដោះស្រាយ</span>',
+                statCitiesLabel: 'Active Regions<br><span style="font-size: 0.8rem; color: #999;">តំបន់សកម្ម</span>',
+                statActiveLabel: 'Reporting Active<br><span style="font-size: 0.8rem; color: #999;">ធ្វើការរាយការណ៍សកម្ម</span>',
+            }
+        };
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'km' ? 'en' : 'km';
+            const t = translations[currentLang];
+            
+            document.getElementById('heroTitle').textContent = t.heroTitle;
+            document.getElementById('heroSlogan').textContent = t.heroSlogan;
+            document.getElementById('heroDesc').textContent = t.heroDesc;
+            document.getElementById('ctaButton').textContent = t.ctaButton;
+            document.getElementById('info1Title').textContent = t.info1Title;
+            document.getElementById('info1Desc').textContent = t.info1Desc;
+            document.getElementById('info2Title').textContent = t.info2Title;
+            document.getElementById('info2Desc').textContent = t.info2Desc;
+            document.getElementById('info3Title').textContent = t.info3Title;
+            document.getElementById('info3Desc').textContent = t.info3Desc;
+            document.getElementById('impactTitle').textContent = t.impactTitle;
+            document.getElementById('impactTreesLabel').textContent = t.impactTreesLabel;
+            document.getElementById('impactWasteLabel').textContent = t.impactWasteLabel;
+            document.getElementById('impactWaterLabel').textContent = t.impactWaterLabel;
+            document.getElementById('formTitle').textContent = t.formTitle;
+            document.getElementById('formSubtitle').innerHTML = t.formSubtitle.replace('*', '<span class="required">*</span>');
+            document.getElementById('location').placeholder = t.locationPlaceholder;
+            document.getElementById('issueType').placeholder = t.issueTypePlaceholder;
+            document.getElementById('description').placeholder = t.descriptionPlaceholder;
+            document.getElementById('uploadText').textContent = t.uploadText;
+            document.getElementById('uploadHint').textContent = t.uploadHint;
+            document.getElementById('addMoreBtn').textContent = t.addMoreBtn;
+            document.querySelector('.submit-btn span').textContent = t.submitBtn;
+            document.getElementById('statReportsLabel').innerHTML = t.statReportsLabel;
+            document.getElementById('statResolvedLabel').innerHTML = t.statResolvedLabel;
+            document.getElementById('statCitiesLabel').innerHTML = t.statCitiesLabel;
+            document.getElementById('statActiveLabel').innerHTML = t.statActiveLabel;
+            
+            updateFileCounter();
+        }
+
+        let map = L.map('map').setView([11.5564, 104.9282], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        let marker = L.marker([11.5564, 104.9282], { draggable: true }).addTo(map);
+
+        function updateInput(lat, lon) {
+            document.getElementById("location").value = `https://maps.google.com/?q=${lat.toFixed(6)},${lon.toFixed(6)}`;
+        }
+
+        marker.on('dragend', () => { let pos = marker.getLatLng(); updateInput(pos.lat, pos.lng); });
+        map.on('click', (e) => { marker.setLatLng(e.latlng); updateInput(e.latlng.lat, e.latlng.lng); });
+
+        function getLocation() {
+            const btn = document.getElementById('gpsBtn');
+            const btnText = document.getElementById('gpsBtnText');
+            if (!navigator.geolocation) return alert("GPS not supported");
+
+            btn.disabled = true;
+            let secondsLeft = 5;
+            btnText.innerHTML = `⌛ Calibrating GPS... (${secondsLeft}s)`;
+
+            let bestPos = null;
+            let watchId = navigator.geolocation.watchPosition(
+                (pos) => { if (!bestPos || pos.coords.accuracy < bestPos.coords.accuracy) bestPos = pos; },
+                (err) => console.error(err),
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+
+            const countdown = setInterval(() => {
+                secondsLeft--;
+                btnText.innerHTML = `⌛ Calibrating GPS... (${secondsLeft}s)`;
+                if (secondsLeft <= 0) {
+                    clearInterval(countdown);
+                    navigator.geolocation.clearWatch(watchId);
+                    btn.disabled = false;
+                    btnText.innerHTML = "រកទីតាំងតាម GPS / Get GPS Location";
+                    if (bestPos) {
+                        const { latitude: lat, longitude: lon, accuracy: acc } = bestPos.coords;
+                        map.setView([lat, lon], 18);
+                        marker.setLatLng([lat, lon]);
+                        updateInput(lat, lon);
+                        alert(`GPS Locked! Accuracy: +/- ${acc.toFixed(1)}m. Drag pin to pinpoint issue.`);
+                    } else { alert("Could not get a clear lock. Move outdoors."); }
+                }
+            }, 1000);
+        }
+
+        const mediaInput = document.getElementById('mediaInput');
+        const mediaGrid = document.getElementById('mediaGrid');
+        const addMoreBtn = document.getElementById('addMoreBtn');
+        const fileCounter = document.getElementById('fileCounter');
+        let selectedFiles =[];
+        const MAX_FILES = 10;
+        const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+        let objectURLs =[];
+
+        function updateFileCounter() {
+            if (selectedFiles.length > 0) {
+                fileCounter.style.display = 'block';
+                const t = translations[currentLang];
+                fileCounter.textContent = t.fileCounter.replace('{count}', selectedFiles.length);
+            } else {
+                fileCounter.style.display = 'none';
+            }
+        }
+
+        function renderMediaGrid() {
+            mediaGrid.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const url = URL.createObjectURL(file);
+                objectURLs.push(url);
+                const item = document.createElement('div');
+                item.className = 'media-item';
+
+                let mediaElement;
+                if (file.type.startsWith('image/')) {
+                    mediaElement = document.createElement('img');
+                    mediaElement.src = url;
+                } else if (file.type.startsWith('video/')) {
+                    mediaElement = document.createElement('video');
+                    mediaElement.src = url;
+                    mediaElement.controls = true;
+                }
+
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-btn';
+                removeBtn.innerHTML = '✕';
+                removeBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    URL.revokeObjectURL(url);
+                    objectURLs = objectURLs.filter(u => u !== url);
+                    selectedFiles.splice(index, 1);
+                    renderMediaGrid();
+                    updateFileCounter();
+                };
+
+                const fileTypeLabel = document.createElement('div');
+                fileTypeLabel.className = 'file-type';
+                fileTypeLabel.textContent = file.type.startsWith('image/') ? 'IMG' : 'VID';
+
+                item.appendChild(mediaElement);
+                item.appendChild(removeBtn);
+                item.appendChild(fileTypeLabel);
+                mediaGrid.appendChild(item);
+            });
+
+            addMoreBtn.style.display = selectedFiles.length < MAX_FILES ? 'inline-block' : 'none';
+            updateFileCounter();
+        }
+
+        mediaInput.addEventListener('change', (e) => {
+            const newFiles = Array.from(e.target.files);
+
+            if (selectedFiles.length + newFiles.length > MAX_FILES) {
+                showStatus(
+                    currentLang === 'km' ? `អតិបរមា ${MAX_FILES} ឯកសារប៉ុណ្ណោះ` : `Maximum ${MAX_FILES} files allowed`,
+                    'error'
+                );
+                return;
+            }
+
+            newFiles.forEach(file => {
+                if (file.size > MAX_FILE_SIZE) {
+                    showStatus(
+                        currentLang === 'km' ? `ឯកសារ ${file.name} ធំពេក (អតិបរមា 20MB)` : `File ${file.name} too large (max 20MB)`,
+                        'error'
+                    );
+                    return;
+                }
+
+                if (!file.type.match(/^(image|video)\//)) {
+                    showStatus(
+                        currentLang === 'km' ? `ឯកសារ ${file.name} មិនត្រឹមត្រូវ` : `File ${file.name} not supported`,
+                        'error'
+                    );
+                    return;
+                }
+
+                selectedFiles.push(file);
+            });
+
+            renderMediaGrid();
+        });
+
+        const statusMessage = document.getElementById('statusMessage');
+        const statusText = document.getElementById('statusText');
+        const statusIcon = document.getElementById('statusIcon');
+
+        function showStatus(message, type = "success") {
+            const box = document.getElementById("statusMessage");
+            box.textContent = message;
+            box.className = "status-message";
+            if (type === "success") {
+                box.classList.add("status-success");
+            } else {
+                box.classList.add("status-error");
+            }
+            box.style.display = "block";
+            setTimeout(() => {
+                box.style.display = "none";
+            }, 4000);
+        }
+
+        function toBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        const trashReportForm = document.getElementById('trashReportForm');
+        trashReportForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const location = document.getElementById("location").value;
+            const issue = document.getElementById("issueType").value;
+            const description = document.getElementById("description").value;
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<div class="spinner"></div> Sending...';
+
+            let files =[];
+
+            try {
+                for (let i = 0; i < selectedFiles.length; i++) {
+                    const file = selectedFiles[i];
+                    const base64 = await toBase64(file);
+                    files.push({
+                        name: file.name,
+                        type: file.type,
+                        data: base64.split(",")[1]
+                    });
+                }
+
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        location: location,
+                        issueType: issue,
+                        description: description,
+                        mediaFiles: files
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.status === "success") {
+                    showStatus(translations[currentLang].successMessage, "success");
+                    trashReportForm.reset();
+                    selectedFiles =[];
+                    renderMediaGrid();
+                } else {
+                    showStatus(translations[currentLang].errorMessage, "error");
+                }
+            } catch (error) {
+                showStatus("❌ Network error. Please try again.", "error");
+            }
+
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<span>' + translations[currentLang].submitBtn + '</span>';
+        });
+    </script>
+</body>
+</html>
