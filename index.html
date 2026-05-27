@@ -800,24 +800,6 @@
             color: rgba(255,255,255,0.8);
             text-decoration: none;
             transition: color 0.3s;
-            position: relative;
-            padding-bottom: 3px;
-        }
-
-        .footer-links a::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: var(--secondary);
-            transition: width 0.3s ease;
-            border-radius: 2px;
-        }
-
-        .footer-links a:hover::after {
-            width: 100%;
         }
 
         .footer-links a:hover {
@@ -875,10 +857,10 @@
     </header>
 
     <!-- Hero Section -->
-    <section class="hero" id="about">
+    <section class="hero">
         <div class="hero-content">
             <h2 id="heroTitle">ថត រាយការណ៍ ស្អាត</h2>
-            <p class="slogan" id="heroSlogan">"អនុវត្តពេលនេះសម្រាប់បច្ចប្បន្ននិងថ្ងៃស្អែក"</p>
+            <p class="slogan" id="heroSlogan">"អនុវត្តពេលនេះសម្រាប់បច្ចុប្បន្ននិងថ្ងៃស្អែក"</p>
             <p id="heroDesc">ចូលរួមចលនាដឹកនាំដោយសហគមន៍របស់យើងដើម្បីការពារបរិស្ថាន។ រាយការណ៍ពីការបំពុល ការចោលសំរាមខុសច្បាប់ និងគ្រោះថ្នាក់បរិស្ថានភ្លាមៗ។</p>
             <a href="#reportForm" class="cta-button" id="ctaButton">ធ្វើការរាយការណ៍</a>
         </div>
@@ -908,7 +890,7 @@
     <div class="container">
 
         <!-- Info Cards -->
-        <div class="info-section" id="how-it-works">
+        <div class="info-section">
             <div class="info-card">
                 <div class="info-icon">📸</div>
                 <h4 id="info1Title">ថតភស្តុតាង</h4>
@@ -927,7 +909,7 @@
         </div>
 
         <!-- Environmental Impact -->
-        <div class="impact-section" id="impact">
+        <div class="impact-section">
             <h3 id="impactTitle">ឥទ្ធិពលរបស់អ្នកមានតម្លៃ</h3>
             <div class="impact-grid">
                 <div class="impact-item">
@@ -1027,16 +1009,16 @@
     <footer class="footer">
         <div class="footer-content">
             <div class="footer-links">
-                <a href="#about" onclick="smoothScroll(event,'about')">អំពី Snip</a>
-                <a href="#how-it-works" onclick="smoothScroll(event,'how-it-works')">គោលការណ៍បរិស្ថាន</a>
-                <a href="#impact" onclick="smoothScroll(event,'impact')">អង្គការដៃគូ</a>
-                <a href="#reportForm" onclick="smoothScroll(event,'reportForm')">ទំនាក់ទំនង</a>
+                <a href="#">អំពី Snip</a>
+                <a href="#">គោលការណ៍បរិស្ថាន</a>
+                <a href="#">អង្គការដៃគូ</a>
+                <a href="#">ទំនាក់ទំនង</a>
             </div>
             <p>បណ្តាញសកម្មភាពបរិស្ថាន Snip<br>
             ភ្ជាប់សហគមន៍សម្រាប់ភពផែនដីស្អាត</p>
-            <p>អ៊ីមែល៖ govcheukeat@gmail.com | ទូរស័ព្ទ៖ (855) 87 307 711</p>
+            <p>អ៊ីមែល៖ govcheukeat@gmail.com | ទូរស័ព្ទ៖ (855) 692 224 26</p>
             <div class="copyright">
-                © 2024 Snip. រក្សាសិទ្ធិគ្រប់យ៉ាង | ធ្វើជាមួយ 🌿 សម្រាប់មាតាធម្មជាតិ
+                © 2026 Snip. រក្សាសិទ្ធិគ្រប់យ៉ាង | ធ្វើជាមួយ 🌿 សម្រាប់មាតាធម្មជាតិ
             </div>
         </div>
     </footer>
@@ -1049,7 +1031,7 @@
         const translations = {
             km: {
                 heroTitle: 'ថត រាយការណ៍ ស្អាត',
-                heroSlogan: '"អនុវត្តពេលនេះសម្រាប់បច្ចប្បន្ននិងថ្ងៃស្អែក"',
+                heroSlogan: '"អនុវត្តពេលនេះសម្រាប់បចុ្ច​ប្បន្ននិងថ្ងៃស្អែក"',
                 heroDesc: 'ចូលរួមចលនាដឹកនាំដោយសហគមន៍របស់យើងដើម្បីការពារបរិស្ថាន។ រាយការណ៍ពីការបំពុល ការចោលសំរាមខុសច្បាប់ និងគ្រោះថ្នាក់បរិស្ថានភ្លាមៗ។',
                 ctaButton: 'ធ្វើការរាយការណ៍',
                 info1Title: 'ថតភស្តុតាង',
@@ -1370,16 +1352,6 @@
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<span>' + translations[currentLang].submitBtn + '</span>';
         });
-        // Smooth scroll for footer nav links
-        function smoothScroll(e, id) {
-            e.preventDefault();
-            const target = document.getElementById(id);
-            if (!target) return;
-            const headerHeight = document.querySelector('.header').offsetHeight;
-            const top = target.getBoundingClientRect().top + window.scrollY - headerHeight - 16;
-            window.scrollTo({ top, behavior: 'smooth' });
-        }
-
         // Dark Mode Toggle
         function toggleDarkMode() {
             const body = document.body;
